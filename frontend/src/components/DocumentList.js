@@ -84,7 +84,7 @@ const DocumentList = () => {
         const data = await response.json();
         setDocuments((prevDocuments) => [data, ...prevDocuments]);
         setUploadStatus((prevStatus) => !prevStatus);
-      } else if (response.status == 401) {
+      } else if (response.status === 401) {
         navigate('/login');
       } else {
         console.error('Failed to upload document');
