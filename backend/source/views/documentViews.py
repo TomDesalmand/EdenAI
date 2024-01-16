@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
 
 # Rest Imports #
 from rest_framework.permissions import IsAuthenticated

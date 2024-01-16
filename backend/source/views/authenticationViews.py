@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 
 # Rest Imports #
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -62,3 +63,18 @@ def login(request):
             return Response({'access_token': access_token}, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def check_token(request):
+    """
+    Checks the validity of the provided JWT access token.
+
+    Args:
+        request (HttpRequest): The HTTP request object containing the JWT access token.
+
+    Returns:
+        Response: JSON response indicating the token's validity.
+    """
+    return Response({'message': 'Token is valid'}, status=status.HTTP_200_OK)

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from ..models.models import Document
+from django.contrib.auth.models import User
 
 class DocumentSerializer(serializers.ModelSerializer):
     """
@@ -24,7 +25,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         return representation
 
 
-class UserRegistrationSerializer(serializers.Serializer):
+class UserRegistrationSerializer(serializers.ModelSerializer):
     """
     Serializer for user registration.
 
@@ -36,10 +37,14 @@ class UserRegistrationSerializer(serializers.Serializer):
         email (EmailField): The email address for user registration.
         password (CharField): The password for user registration (write-only).
     """
-    username = serializers.CharField()
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
 
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
 
 class UserLoginSerializer(serializers.Serializer):
     """

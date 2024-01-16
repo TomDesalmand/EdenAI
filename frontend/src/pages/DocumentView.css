@@ -1,0 +1,42 @@
+.document-view-container {
+    max-width: 100%;
+    margin: auto;
+    padding: 20px;
+}
+
+.back-button {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+.text-section,
+.keywords-section {
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #333333;
+}
+
+.keyword-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.keyword-item {
+    font-size: 14px;
+}
+
+.no-keywords {
+    color: #777777;
+}

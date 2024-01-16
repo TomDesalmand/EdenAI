@@ -27,7 +27,7 @@ services:
       build:
         context: ./frontend
       ports:
-        - '8081:8081'
+        - '8001:8001'
       volumes:
         - ./frontend/node_modules:/app/node_modules
         - ./frontend:/app
