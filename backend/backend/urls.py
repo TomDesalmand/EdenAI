@@ -17,9 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from source.views.authenticationViews import register, login
+from source.views.documentViews import upload_file, download_document, document_list, get_document_information
 
 urlpatterns = [
     #path('admin/', admin.site.urls),
     path('register/', register, name='register'),
     path('login/', login, name='login'),
+    path('upload/', upload_file, name='upload_file'),
+    path('download/<int:document_id>/', download_document, name='download_document'),
+    path('list/', document_list, name='document_list'),
+    path('document/<int:document_id>/', get_document_information, name='get_document_text'),
 ]

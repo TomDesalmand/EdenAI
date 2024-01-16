@@ -1,6 +1,29 @@
 from rest_framework import serializers
 from ..models.models import Document
 
+class DocumentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Document model.
+
+    This serializer is used to convert Document model instances into JSON representation
+    for API responses. It includes fields such as id, upload_date, file, and keywords.
+
+    Attributes:
+        id (IntegerField): The unique identifier of the document.
+        upload_date (DateTimeField): The date and time when the document was uploaded.
+        file (CharField): The name of the file associated with the document.
+        keywords (CharFieldArray): The keywords extracted from the document.
+    """
+    class Meta:
+        model = Document
+        fields = ['id', 'upload_date', 'file', 'keywords']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['file'] = str(instance.file)
+        return representation
+
+
 class UserRegistrationSerializer(serializers.Serializer):
     """
     Serializer for user registration.
