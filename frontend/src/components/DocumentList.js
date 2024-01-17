@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { InboxOutlined, CheckCircleOutlined, CloseCircleOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { Button, Layout, Space, Table, message, Upload } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const DocumentList = () => {
+const { Content } = Layout;
+const { Dragger } = Upload;
+
+
+const Dashboard = () => {
+  const [fileList, setFileList] = useState([]);
   const navigate = useNavigate();
-  const initialSortCriteria = 'upload_date';
-  const initialSortOrder = 'asc';
 
   const [documents, setDocuments] = useState([]);
-  const [sortCriteria, setSortCriteria] = useState(initialSortCriteria);
-  const [sortOrder, setSortOrder] = useState(initialSortOrder);
   const [uploadStatus, setUploadStatus] = useState(false);
 
   useEffect(() => {
@@ -18,13 +21,14 @@ const DocumentList = () => {
         const response = await fetch('http://localhost:8000/api/list', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
         if (response.ok) {
           const data = await response.json();
+          console.log('data', data);
           setDocuments(data);
         } else {
           console.error('Failed to fetch document list');
@@ -43,7 +47,7 @@ const DocumentList = () => {
       const response = await fetch(`http://localhost:8000/api/download/${documentId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -65,17 +69,17 @@ const DocumentList = () => {
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (file) => {
     try {
       const token = localStorage.getItem('token');
+      console.log('token', token);
       const formData = new FormData();
-      const fileInput = document.getElementById('file-input');
-      formData.append('file', fileInput.files[0]);
+      formData.append('file', file);
 
       const response = await fetch('http://localhost:8000/api/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -93,58 +97,109 @@ const DocumentList = () => {
       console.error('Error during upload:', error);
     }
   };
+
+  const props = {
+    name: 'file',
+    multiple: true,
+    action: 'https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188',
+    onChange(info) {
+      const { status, originFileObj } = info.file;
+      if (status !== 'uploading') {
+        console.log(info.file, info.fileList);
+      }
+      if (status === 'done') {
+        message.success(`${info.file.name} file uploaded successfully.`);
+        setFileList(info.fileList);
+        if (originFileObj) {
+          handleUpload(originFileObj);
+        }
+      } else if (status === 'error') {
+        message.error(`${info.file.name} file upload failed.`);
+      }
+    },
+    onDrop(e) {
+      console.log('Dropped files', e.dataTransfer.files);
+    },
+  };
+
+  const columns = [
+    {
+      title: 'Filename',
+      dataIndex: 'file',
+      key: 'file',
+      render: (text, record) => (
+        <Button type="link" onClick={() => handleDownload(record.id, record.file)}>
+          {text}
+        </Button>
+      ),
+    },
+    {
+      title: 'Upload Date',
+      dataIndex: 'upload_date',
+      key: 'upload_date',
+      render: (text) => new Date(text).toLocaleDateString(),
+      sorter: (a, b) => new Date(a.upload_date) - new Date(b.upload_date),
+    },
+    {
+      title: 'Number of Keywords',
+      dataIndex: 'keywords',
+      key: 'keywords',
+      render: (keywords) => keywords.length,
+      sorter: (a, b) => a.keywords.length - b.keywords.length,
+    },
+    {
+      title: 'OCR Status',
+      key: 'ocr_status',
+      render: (_, record) =>
+        record.keywords.length === 0 ? (
+          <CloseCircleOutlined style={{ color: 'red' }} />
+        ) : (
+          <CheckCircleOutlined style={{ color: 'green' }} />
+        ),
+      sorter: (a, b) => a.keywords.length - b.keywords.length,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Space size="middle">
+          <Button type="link" icon={<EyeOutlined />} onClick={() => navigate(`/document/view/${record.id}`)} />
+          <Button type="link" icon={<DownloadOutlined />} onClick={() => handleDownload(record.id, record.file)} />
+        </Space>
+      ),
+    },
+  ];
+
+  const layoutStyle = {
+    width: '100%',
+    height: '100vh',
+  };
   
-  const handleSort = (criteria) => {
-    setSortOrder((prevOrder) => (sortCriteria === criteria ? (prevOrder === 'asc' ? 'desc' : 'asc') : 'asc'));
-    setSortCriteria(criteria);
+  const contentStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+    height: '80vh',
+    padding: 12,
   };
-
-  const resetSort = () => {
-    setSortCriteria(initialSortCriteria);
-    setSortOrder(initialSortOrder);
-  };
-
-  const sortedDocuments = [...documents].sort((a, b) => {
-    const aValue = sortCriteria === 'upload_date' ? new Date(a.upload_date) : a.keywords.length;
-    const bValue = sortCriteria === 'upload_date' ? new Date(b.upload_date) : b.keywords.length;
-
-    return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
-  });
-
-  return (
-    <div>
-      <div>
-        <button onClick={resetSort}>Reset Sort</button>
-        <button onClick={handleUpload}>Submit</button>
-        <label htmlFor="file-input" className="upload-btn">
-          <input type="file" id="file-input" accept=".pdf,.doc,.docx,.png,.jpg" />
-        </label>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>Filename</th>
-            <th onClick={() => handleSort('upload_date')}>Upload Date</th>
-            <th onClick={() => handleSort('keywords')}>Number of Keywords</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedDocuments.map((document, index) => (
-            <tr key={index}>
-              <td>{document.id}</td>
-              <td>
-                <button onClick={() => handleDownload(document.id, document.file)}>{document.file}</button>
-              </td>
-              <td>{document.upload_date}</td>
-              <td>{document.keywords.length}</td>
-              <button onClick={() => navigate(`/document/view/${document.id}`)}>View</button>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  
+	return (
+		<Layout style={layoutStyle}>
+			<Content style={contentStyle}>
+				<div style={{ padding: 24, flex: 1, height: '90%', justifySelf: 'center' }}>
+					<Dragger {...props}>
+						<p className="ant-upload-drag-icon">
+							<InboxOutlined />
+						</p>
+						<p className="ant-upload-text">Click or drag file to this area to upload</p>
+					</Dragger>
+				</div>
+				<div style={{ padding: 24, flex: 2, overflow: 'auto' }}>
+					<Table columns={columns} dataSource={documents} rowKey="id" />
+				</div>
+			</Content>
+		</Layout>
+	);
 };
 
-export default DocumentList;
+export default Dashboard;
