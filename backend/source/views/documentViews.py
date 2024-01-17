@@ -38,11 +38,13 @@ def upload_file(request):
         Response: JSON response with document information on successful upload or error message on failure.
     """
     try:
+        user = request.user
         file = request.FILES.get('file')
         file_name = default_storage.save(file.name, ContentFile(file.read()))
         file_path = os.path.join(settings.MEDIA_ROOT, file_name)
         text, keywords = ocr_and_extract_keywords(file_path)
         document = Document.objects.create(
+            user=user,
             file=file_name,
             text=text,
             keywords=keywords
@@ -90,9 +92,9 @@ def download_document(request, document_id):
 @permission_classes([IsAuthenticated])
 def document_list(request):
     """
-    Retrieves a list of all documents.
+    Retrieves a list of all documents for the current user.
 
-    This endpoint allows authenticated users to retrieve a list of all documents stored in the system.
+    This endpoint allows authenticated users to retrieve a list of their documents stored in the system.
 
     Args:
         request (HttpRequest): The HTTP request object.
@@ -101,11 +103,13 @@ def document_list(request):
         Response: JSON response with a list of document information on successful retrieval or error message on failure.
     """
     try:
-        documents = Document.objects.all()
+        user = request.user
+        documents = Document.objects.filter(user=user)
         serializer = DocumentSerializer(documents, many=True)
         return Response(serializer.data)
     except Exception as error:
         return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 @api_view(['GET'])

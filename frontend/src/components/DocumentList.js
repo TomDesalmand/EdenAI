@@ -28,7 +28,6 @@ const Dashboard = () => {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('data', data);
           setDocuments(data);
         } else {
           console.error('Failed to fetch document list');
@@ -71,8 +70,7 @@ const Dashboard = () => {
 
   const handleUpload = async (file) => {
     try {
-      const token = localStorage.getItem('token');
-      console.log('token', token);
+      const token = localStorage.getItem('token');;
       const formData = new FormData();
       formData.append('file', file);
 
